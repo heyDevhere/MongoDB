@@ -336,6 +336,307 @@ both collections are different
 
 *************** Importing JSON IN MongoDB ******************
 
+mongoImport and MongoExport are MongoDB Database tools toh inhe bhi alag se download kerna padhta h
+
+* mongoimport jsonfile.json –d database_name –c collection_name
+like : mongoimport products.json -d shop -c products
+
+if you want to import array which consist objects then use -- jsonArray
+
+like : mongoimport products.json -d shop -c products --jsonArray
+
+* mongoexport : if we want to export data to a other file
+
+mongoexport -d database_name -c collection_name -o "destination file path"
+
+Limited to imports of 16 MB or smaller only
+
+******************* Comparison Operators **********************
+
+$eq $ne $gt $gte
+$lt $lte $in $nin
+
+
+db.collectionName.find({ 'fieldname': { $operator: value } });
+
+
+db.products.find({ 'price': { $eq: 699 } });
+db.products.find({ 'price': { $ne: 699 } });
+db.products.find({ 'price': { $gt: 699 } });
+db.products.find({ 'price': { $gte: 699 } });
+db.products.find({ 'price': { $lt: 699 } });
+db.products.find({ 'price': { $lte: 699 } });
+
+
+db.category.find({ 'price': { $in: [249, 129, 39] } });
+
+we get the whole document satisphying the condition of price
+
+*********** Cursors in MongoDB **************
+
+In MongoDB, cursors are pointers to the result set of a query. When you execute a query in MongoDB, it returns a cursor, which is essentially a pointer to the result set of that query.
+
+Cursors are particularly useful when dealing with large result sets, as they allow you to retrieve a subset of the results at a time
+
+*********** Cursor Methods ******************
+
+count() limit() skip() sort()
+
+* db.products.find({ 'price': { $gt: 250 } }).count()
+=> total number of documents satisphying the above condition
+ 
+* db.products.find({ 'price': { $gt: 250 } }).limit(5);
+=> from all the documents satisphying the condtion i want only 5 documents
+
+* db.products.find({ 'price': { $gt: 250 } }).limit(5).skip(2);
+=> first 5 documents will be there satisphying the price condition now we want to skil 2 documents therefore remaining documents will be 3
+but as limit is 5 therefore 2 more documents will be added which satisphyes the condition
+
+* db.products.find({ 'price': { $gt: 1250 } })'.limit(3).sort({ 'price': 1 });
+=> this sorting does not work with "nin" operator
+
+(1) for ascending and (-1) for descending
+
+************ Cursor Methods (Caveats/Warning) ***************************
+
+* skip() can be inefficient for large offsets: [ Offsets" refer to the number of documents to skip before starting to return the documents ]
+
+If you're skipping a small number of documents, this is not a problem. However, if you're skipping a large number of documents, MongoDB has to read and discard a large amount of data, which can be inefficient, especially for large collections.
+
+For example, let's say you have a collection with 1 million documents, and you want to skip the first 900,000 documents and retrieve the remaining 100,000. Using skip() in this scenario would require MongoDB to read and skip over 900,000 documents before returning the remaining 100,000. This can be slow and inefficient.
+
+* Using sort() on large result sets may impact performance.
+
+=>For example, let's say you have a collection with 1 million documents, and you want to sort them by a particular field. MongoDB would have to sort all 1 million documents before returning the sorted result set. This can be slow and resource-intensive, especially for large collections.
+
+* limit() and skip() saath saath use kerna also increases burden on MongoDB
+
+************ Logical Operators **********************
+$and $or $not $nor
+
+{ $and: [ { condition1 }, { condition2 }, ... ] }
+
+{ field: { $not: { operator: value } } }
+
+* db.products.find({ $and: [ { 'price':{$gt:100} }, { 'name':'Diamond Ring' } ] })
+=> returns all the documents having satisphied all the 2 conditions.
+
+* db.products.find({ $or: [ { 'price':{$gt:100} }, { 'name':'Diamond Ring' } ] })
+=> returns all the documents having satisphied any on the one above condition, or both the condition satisphied
+
+* db.products.find({ 'price':{$gt:100},'name':'Diamond Ring' })
+=> This also works , as by default mongoDB treats them as an implicit AND operation.
+
+* db.products.find({ $nor: [ { 'price':{$gt:100} }, { 'name':'Diamond Ring' } ] })
+=> this says pehli condition ko chod ke and dusri condition ko chod ke baki jo bhi h sab dikha do, means 1st and 2nd condition should be false,so that i can show some data(document)
+
+*  db.products.find({'price':{$not:{$eq:100}}})
+=> it returns all the data where price is "not" equal to ("eq") 100.
+aise bhi ker sakte the => db.products.find({'price':{$neq:100}})
+
+*  db.products.find({'price':{$not:{$lt:100}}})
+
+*********************** Complex Expressions **************************
+
+$expr operator :
+
+$expr is a query operator in MongoDB that allows you to use aggregation expressions within a find() query.
+
+Useful when you need to compare fields from the same document in a more complex manner.
+
+{ $expr: { operator: ['$field', value] } }
+
+Q) Find fields where quantity * price is geater than totalprice
+A)   db.sales.find({$expr:{ $gt : [                    , $totalprice ] }})
+
+     db.sales.find({$expr:{ $gt : [ { $multiply:['$quantity','$price'] } , $totalprice ] }})
+
+     db.sales.find({$expr:{ $gt : [ { $add:['$quantity','$price'] } , $totalprice ] }})
+
+
+**************** Elements Operator ************************
+
+$exists $type $size
+
+* .find({ field: { $exists: <boolean>} })
+
+=> whether field is present or not irrespective of its value
+
+  .find({ name: { $exists:true} , price: {$gt:300} })
+
+=> name field exists and the price is greater than 300
+
+* .find({ field: { $type: "<bson-data-type>" } })
+
+=> Bson type values (just like a datatype)
+
+1. **Double**: Floating-point value.
+2. **String**: UTF-8 encoded string.
+3. **Object**: Embedded document.
+4. **Array**: Ordered list of values.
+5. **Binary Data**: Binary data.
+6. **Undefined**: Deprecated.
+7. **ObjectID**: 12-byte ID for documents.
+8. **Boolean**: Boolean value.
+9. **Date**: UTC datetime.
+10. **Null**: Null value.
+11. **Regular Expression**: Regular expression.
+12. **DBPointer**: Deprecated.
+
+db.products.find({price:{$type:'number'}}.count()
+give me the data where price data type is a number.
+
+db.products.find({isFeature:{$type:'bool'}}.count()
+aise bhi likh sakte h
+db.products.find({isFeature:{$type:8}}.count()
+  
+* .find({ field: { $size: <array-length> } })
+=> db.comments.find({'comments':{$size:4}})
+       |             this is a field name
+     comments is a collection name
+
+basically comments collection has a field name collection which is an array of objects
+
+this command returns only those documents having comments array size 4
+
+
+***************** Projection *********************
+db.collection.find({}, { field1: 1, field2: 1 })
+
+=>To include specific fields, use projection with a value of 1 for the fields you want.
+=>To exclude fields, use projection with a value of 0 for the fields you want to
+exclude.
+=>You cannot include and exclude fields simultaneously in the same query
+projection  **EXCEPTION** {name:1,_id:0}  can write only _id:0
+
+=> db.comments.find({'comments':{$size:2}},{comments:1,title:0}); ===========> W.R.O.N.G
+
+* db.comments.find({'comments':{$size:2}});
+
+it returns the full document satisphysing the condition that the comments size is 2
+
+now i only want to see the comments portiion of the document and by deafult mongoDB adds a _id filed which i do not want to see therefore i do this !!
+
+=> db.comments.find({'comments':{$size:2}},{comments:1,_id:0});
+
+**************** Embedded Documents *********************
+
+db.collection.find({ “parent.child”: value })
+
+db.collection.find({ “parent.child”: {$gt:1200} })
+                                      (Condition)
+
+****************** $all and $elem **********************
+
+$all:
+
+{ <field>: { $all: [ <value1> , <value2> ... ] } }
+
+basically i want all the names in my comments.user ! ! ! 
+db.comments.find({'comments.user':{$all:['Alice','Vinod']}})
+
+$in : checks whether any from them is present or not  ['Alice','bob']
+
+$elem:
+
+{ <field>: { $elemMatch: { <query1>, <query2>, ... } } }
+
+ if we want to check multiple conditions of an embedded document !
+comments.user=vinod and comments.text=dev
+
+i can write this two times also =>  db.collection.find({ “parent.child”: value })
+
+db.comments.find({'comments.user':{$elemMatch:{'user':'vinod','text':'dev'}}})
+
+
+*************** Update Operations inMongoDB *******************************
+
+updateOne() and updateMany()
+
+basically u can create a new field as well as update the value of an existing field
+
+db.collectionName.updateOne(
+{ filter },
+{ $set: { existingField: newValue, newField: "new value", // ... }, }
+);
+
+db.collectionName.updateMany(
+{ filter },
+{ $set: { existingField: newValue, // ... }, }
+);
+
+**************** Removing and Renaming Fields **********************
+
+db.collectionName.updateOne( { filter }, { $unset: { fieldName: 1 } } );
+
+db.collectionName.updateOne(
+ { filter },
+ { $rename: { oldFieldName: "newFieldName" } }
+);
+
+*************** Updating arrays and Embedded Documents *****************
+
+db.collectionName.updateOne(
+ { filter },
+ { $push: { arrayField: "new element" } }
+);
+
+db.collectionName.updateOne(
+ { filter },
+ { $pop: { arrayField: 1 } }
+);
+
+it pops the last element of the array
+
+
+comments.user: "dev" ussi ki hi comments.text ko update kerna h
+
+db.collectionName.updateOne(
+ { filter },
+ { $set: { "arrayField.$.text": "Updated text" } }
+);
+
+*********** Delete Operations in MongoDB *******************
+From a collection to delete one document
+ db.collectionName.deleteOne({ _id:1 });
+
+From a collection to delete multiple document,,here multiple documents having price : 55 have been deleted !
+db.sales.deleteMany({ price: 55 });
+
+if you want to delete a specific 'field' then use "unset" discussed above in renaming section
+
+*************** Indexes *********************
+
+baki ka pdf + video se dekho ! !
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
