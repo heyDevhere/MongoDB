@@ -1,4 +1,4 @@
-           ** Sab kuch padenge of mongoDB **
+![image](https://github.com/heyDevhere/MongoDB/assets/132212030/86c716d7-9ee2-4af6-93d9-44d1f4a544ce)           ** Sab kuch padenge of mongoDB **
 (1) basic 
 (2) advanced
 (3) projects
@@ -283,9 +283,61 @@ db.collectionName.insertMany(
 
 after successfull insertion mongoDB assigns us Inserted Id for each document.
 
+************* When to use quotes and when not to **********************
+
+* Special Characters
+=> If a field name contains special characters or spaces, or starts with a numeric digit, using quotes is necessary.
+
+* Reserved Words
+=> If a field name is a reserved keyword in MongoDB, use quotes
+
+db.collectionName.insertOne(
+   {
+      "name": "John Doe",
+      "age": 30,
+      "email": "john.doe@example.com",
+      "if": "some value" // "if" is a reserved keyword, so it should be enclosed in quotes
+   }
+)
+
+*************************** Ordered and Unordered Inserts ************************************
+
+Ordered Inserts :
+ => db.<collection-name>.insertMany([ doc1, doc2, ... ]);
+    Default behavior is ordered, where MongoDB stops on the first error.
+    Suppose i want to insert 3 documents and i got a error on second document , then mongoDB will stop and i will not be able tp insert third 
+    document while the third document was error free.
+ 
+Unordered Inserts
+=>  When executing bulk insert operations with {ordered:false}, MongoDB skips the insertion of documents with error and insert correct docuements only
+=> db.<collection-name>.insertMany([ doc1, doc2, ... ], { ordered: false });
+
+*************************** Case Sensitivity in MongoDB **************************************************
+
+=> Collection names are case-sensitive.
+=> Field names within documents are also case-sensitive.
+
+db.Product.insertOne({ name: 'thapa', age: 30 });
+db.product.insertOne({ name: 'thapa', age: 30 });
+
+both collections are different
+
+************************* Finding Documents in MongoDB ***************************************************
+
+* find()
+  db.collection_name.find({ key: value })
+
+=> it returns all the documents having this specific key and value
+
+* findOne()
+  db.collection_name.findOne({ key: value })
+
+=> it returns only the single document having this key and value
+
+*************** Importing JSON IN MongoDB ******************
 
 
-![image](https://github.com/heyDevhere/MongoDB/assets/132212030/0e676d90-7e9a-412e-9314-0b2b0d7217c0)
+
 
 
 
