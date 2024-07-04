@@ -389,7 +389,7 @@ count() limit() skip() sort()
 => from all the documents satisphying the condtion i want only 5 documents
 
 * db.products.find({ 'price': { $gt: 250 } }).limit(5).skip(2);
-=> first 5 documents will be there satisphying the price condition now we want to skil 2 documents therefore remaining documents will be 3
+=> first 5 documents will be there satisphying the price condition now we want to skip 2 documents therefore remaining documents will be 3
 but as limit is 5 therefore 2 more documents will be added which satisphyes the condition
 
 * db.products.find({ 'price': { $gt: 1250 } })'.limit(3).sort({ 'price': 1 });
@@ -457,7 +457,7 @@ A)   db.sales.find({$expr:{ $gt : [                    , $totalprice ] }})
 **************** Elements Operator ************************
 
 $exists $type $size
-
+ 
 * .find({ field: { $exists: <boolean>} })
 
 => whether field is present or not irrespective of its value
@@ -568,6 +568,8 @@ db.collectionName.updateMany(
 **************** Removing and Renaming Fields **********************
 
 db.collectionName.updateOne( { filter }, { $unset: { fieldName: 1 } } );
+fieldname : 1 , means that particular fieldname ...is to be deleted(unset)
+
 
 db.collectionName.updateOne(
  { filter },
